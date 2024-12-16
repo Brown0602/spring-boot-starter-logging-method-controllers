@@ -26,14 +26,14 @@ public class ApplicationConfiguration {
     @Bean
     public CommandLineRunner commandLineRunner(PropertiesConfiguration propertiesConfiguration) {
         return args -> {
-            if (!propertiesConfiguration.isStatus()) {
-                logger.warn("Логирование отключено! Для включения логирования укажите свойство: logging.status=true");
-            } else {
-                logger.warn("""
-                        Логирование включено!\s
-                        Для отключения логирования укажите свойство: logging.status=false\s
-                        Установлен уровень логирования: {}""", propertiesConfiguration.getLvl());
-            }
+            String message = propertiesConfiguration.isStatus() ?
+                    """
+                    Логирование включено!\s
+                    Для отключения логирования укажите свойство log.status=false\s
+                    Установлен уровень логирования: {}""" : """
+                    Логирование отключено! Для включения логирования укажите свойство log.status=true
+                    """;
+            logger.warn(message, propertiesConfiguration.getLvl());
         };
     }
 }

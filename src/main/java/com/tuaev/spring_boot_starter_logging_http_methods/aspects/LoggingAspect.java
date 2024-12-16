@@ -20,55 +20,96 @@ public class LoggingAspect {
 
     @After("@within(org.springframework.web.bind.annotation.RestController) && execution(@com.tuaev.spring_boot_starter_logging_http_methods.annotations.AfterLoggingMethod * *(..))")
     public void afterLogging(JoinPoint joinPoint){
-        if (Level.INFO == propertiesConfiguration.getLvl()){
-            logger.info("Вызван метод {} у класса {}: ", joinPoint.getSignature().getName(), joinPoint.getTarget());
-        }
+        loggingCalsMethod(propertiesConfiguration, joinPoint);
     }
 
     @Before("@within(org.springframework.web.bind.annotation.RestController) && execution(@com.tuaev.spring_boot_starter_logging_http_methods.annotations.BeforeLoggingMethod * *(..))")
     public void beforeLogging(JoinPoint joinPoint){
-        if (Level.INFO == propertiesConfiguration.getLvl()){
-            logger.info("Метод {} у класса {} закончил свою работу: ", joinPoint.getSignature().getName(), joinPoint.getTarget());
-        }
+        loggingEndCalsMethod(propertiesConfiguration, joinPoint);
     }
 
     @Around("@within(org.springframework.web.bind.annotation.RestController) && execution(@com.tuaev.spring_boot_starter_logging_http_methods.annotations.FullLoggingMethod * *(..))")
     public Object fullLogging(ProceedingJoinPoint joinPoint) throws Throwable {
         Object o;
         try {
-            if (Level.INFO == propertiesConfiguration.getLvl()) {
-                logger.info("Вызван метод {} у класса {}: ", joinPoint.getSignature().getName(),
-                        joinPoint.getTarget());
-            }
+            loggingCalsMethod(propertiesConfiguration, joinPoint);
             o = joinPoint.proceed();
         } catch (Throwable e) {
-            if (Level.INFO == propertiesConfiguration.getLvl()) {
-                logger.info("Метод {} у класса {} выбросил исключение: {}", joinPoint.getSignature().getName(),
-                        joinPoint.getTarget(), e.getClass());
-            }
+            loggingExceptionsMethod(propertiesConfiguration, joinPoint, e);
             throw e;
         } finally {
-            if (Level.INFO == propertiesConfiguration.getLvl()) {
-                logger.info("Метод {} у класса {} закончил свою работу", joinPoint.getSignature().getName(),
-                        joinPoint.getTarget());
-            }
+            loggingEndCalsMethod(propertiesConfiguration, joinPoint);
         }
         return o;
     }
 
     @AfterReturning(pointcut = "@within(org.springframework.web.bind.annotation.RestController) && execution(@com.tuaev.spring_boot_starter_logging_http_methods.annotations.ResultHandlerMethod * *(..))", returning = "o")
     public void resultHandler(JoinPoint joinPoint, Object o){
-        if (Level.INFO == propertiesConfiguration.getLvl()){
-            logger.info("Метод {} у класса {} вернул следующий результат: {}", joinPoint.getSignature().getName(),
-                    joinPoint.getTarget(), o);
-        }
+        loggingResultMethod(propertiesConfiguration, joinPoint, o);
     }
 
     @AfterThrowing(pointcut = "@within(org.springframework.web.bind.annotation.RestController) && execution(@com.tuaev.spring_boot_starter_logging_http_methods.annotations.ExceptionHandlerMethod * *(..))", throwing = "throwable")
-    public void exceptionHandler(JoinPoint joinPoint, Throwable throwable) throws Throwable {
-        if (Level.INFO == propertiesConfiguration.getLvl()) {
-            logger.info("Вызвано исключение {} у класса {} метода {}", throwable.getClass().getSimpleName(),
-                    joinPoint.getTarget(), joinPoint.getSignature().getName());
+    public void exceptionHandler(JoinPoint joinPoint, Throwable throwable){
+        loggingExceptionsMethod(propertiesConfiguration, joinPoint, throwable);
+    }
+
+    private void loggingCalsMethod(PropertiesConfiguration propertiesConfiguration, JoinPoint joinPoint){
+        String message = "Вызван метод {} у класса {}: ";
+        if (Level.INFO.equals(propertiesConfiguration.getLvl())){
+            logger.info(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }else if (Level.TRACE.equals(propertiesConfiguration.getLvl())){
+            logger.trace(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }else if (Level.ERROR.equals(propertiesConfiguration.getLvl())){
+            logger.error(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }else if (Level.DEBUG.equals(propertiesConfiguration.getLvl())){
+            logger.debug(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }else if (Level.WARN.equals(propertiesConfiguration.getLvl())){
+            logger.warn(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }
+    }
+
+    private void loggingEndCalsMethod(PropertiesConfiguration propertiesConfiguration, JoinPoint joinPoint){
+        String message = "Метод {} у класса {} закончил свою работу: ";
+        if (Level.INFO.equals(propertiesConfiguration.getLvl())){
+            logger.info(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }else if (Level.TRACE.equals(propertiesConfiguration.getLvl())){
+            logger.trace(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }else if (Level.ERROR.equals(propertiesConfiguration.getLvl())){
+            logger.error(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }else if (Level.DEBUG.equals(propertiesConfiguration.getLvl())){
+            logger.debug(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }else if (Level.WARN.equals(propertiesConfiguration.getLvl())){
+            logger.warn(message, joinPoint.getSignature().getName(), joinPoint.getTarget());
+        }
+    }
+
+    private void loggingExceptionsMethod(PropertiesConfiguration propertiesConfiguration, JoinPoint joinPoint, Throwable throwable){
+        String message = "Метод {} у класса {} выбросил следующее исключение {}: ";
+        if (Level.INFO.equals(propertiesConfiguration.getLvl())){
+            logger.info(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), throwable.getClass().getName());
+        }else if (Level.TRACE.equals(propertiesConfiguration.getLvl())){
+            logger.trace(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), throwable.getClass().getName());
+        }else if (Level.ERROR.equals(propertiesConfiguration.getLvl())){
+            logger.error(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), throwable.getClass().getName());
+        }else if (Level.DEBUG.equals(propertiesConfiguration.getLvl())){
+            logger.debug(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), throwable.getClass().getName());
+        }else if (Level.WARN.equals(propertiesConfiguration.getLvl())){
+            logger.warn(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), throwable.getClass().getName());
+        }
+    }
+
+    private void loggingResultMethod(PropertiesConfiguration propertiesConfiguration, JoinPoint joinPoint, Object o){
+        String message = "Метод {} у класса {} вернул следующий результат: {}";
+        if (Level.INFO.equals(propertiesConfiguration.getLvl())){
+            logger.info(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), o);
+        }else if (Level.TRACE.equals(propertiesConfiguration.getLvl())){
+            logger.trace(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), o);
+        }else if (Level.ERROR.equals(propertiesConfiguration.getLvl())){
+            logger.error(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), o);
+        }else if (Level.DEBUG.equals(propertiesConfiguration.getLvl())){
+            logger.debug(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), o);
+        }else if (Level.WARN.equals(propertiesConfiguration.getLvl())){
+            logger.warn(message, joinPoint.getSignature().getName(), joinPoint.getTarget(), o);
         }
     }
 }
