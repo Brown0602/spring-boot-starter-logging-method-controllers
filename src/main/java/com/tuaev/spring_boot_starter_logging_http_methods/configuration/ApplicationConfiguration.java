@@ -3,6 +3,7 @@ package com.tuaev.spring_boot_starter_logging_http_methods.configuration;
 import com.tuaev.spring_boot_starter_logging_http_methods.aspects.LoggingAspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -33,7 +34,8 @@ public class ApplicationConfiguration {
                     Установлен уровень логирования: {}""" : """
                     Логирование отключено! Для включения логирования укажите свойство log.status=true
                     """;
-            logger.warn(message, propertiesConfiguration.getLvl());
+            LoggingEventBuilder loggingEventBuilder = logger.atLevel(propertiesConfiguration.getLvl());
+            loggingEventBuilder.log(message, propertiesConfiguration.getLvl());
         };
     }
 }
